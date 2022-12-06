@@ -34,3 +34,12 @@ on the filesystem ccsid tag.
 ```java
 FileNewContentsReader reader = new FileNewContentsReader(file, "*TAG")
 ```
+
+Maven users can import the dependency with a declaration like this (replace the version with the latest release):
+```xml
+<dependency>
+  <groupId>io.github.theprez</groupId>
+  <artifactId>jfiletail</artifactId>
+  <version>0.0.2</version>
+</dependency>
+```

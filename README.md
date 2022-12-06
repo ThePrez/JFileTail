@@ -25,6 +25,12 @@ java -jar jfiletail.jar <filename>
 Function is accessed solely through the `io.github.theprez.jfiletail.FileNewContentsReader` class, which
 implements the standard `Reader` functions. The Reader will only read portions of the file that have not been read
 since last invocation. 
+
+The constructor takes two arguments:
+- The `File` you wish to read
+- the file's encoding. A special value of `*TAG` is allowed when running on IBM i, which will read the file based
+on the filesystem ccsid tag. 
+
 ```java
-FileNewContentsReader reader = new FileNewContentsReader(f, "*TAG")
+FileNewContentsReader reader = new FileNewContentsReader(file, "*TAG")
 ```

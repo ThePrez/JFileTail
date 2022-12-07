@@ -9,29 +9,30 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
 abstract class OffsetManager {
-    abstract public long get() throws IOException;
-
-    abstract public void set(long _l) throws IOException;
-
-    protected final File m_file;
-
-    protected OffsetManager(File _f) {
-        m_file = _f;
-    }
-    
-    protected static FileTime getCreationTime(File _f) throws IOException {
-        Path path = Paths.get(_f.getAbsolutePath());
-        BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+    protected static FileTime getCreationTime(final File _f) throws IOException {
+        final Path path = Paths.get(_f.getAbsolutePath());
+        final BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
         return attr.creationTime();
     }
-    protected static FileTime getModifyTime(File _f) throws IOException {
-        Path path = Paths.get(_f.getAbsolutePath());
-        BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+
+    protected static FileTime getModifyTime(final File _f) throws IOException {
+        final Path path = Paths.get(_f.getAbsolutePath());
+        final BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
         return attr.lastModifiedTime();
     }
 
-    public boolean isOlderThan(FileTime _x) throws IOException {
-        FileTime time = getCreationTime(m_file);
-        return (time.compareTo(_x)<0);
+    protected final File m_file;
+
+    protected OffsetManager(final File _f) {
+        m_file = _f;
     }
+
+    abstract public long get() throws IOException;
+
+    public boolean isOlderThan(final FileTime _x) throws IOException {
+        final FileTime time = getCreationTime(m_file);
+        return (time.compareTo(_x) < 0);
+    }
+
+    abstract public void set(long _l) throws IOException;
 }

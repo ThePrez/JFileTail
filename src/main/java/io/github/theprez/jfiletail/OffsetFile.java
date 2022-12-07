@@ -8,19 +8,22 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class OffsetFile extends OffsetManager {
-    private final File m_offsetFile;
     private final File m_nameFile;
-    
+    private final File m_offsetFile;
 
     public OffsetFile(final File _f) throws IOException {
         super(_f);
-        File dotDir = new File(new File(System.getProperty("user.home", "~")), ".jtailor");
+        final File dotDir = new File(new File(System.getProperty("user.home", "~")), ".jtailor");
         dotDir.mkdirs();
-        m_offsetFile = new File(dotDir,"."+new FileIdGetter(_f).get()+ ".offset");
-     m_nameFile = new File(dotDir,"."+new FileIdGetter(_f).get()+ ".filename");
-        try(FileWriter nameWriter = new FileWriter(m_nameFile)) {
+        m_offsetFile = new File(dotDir, "." + new FileIdGetter(_f).get() + ".offset");
+        m_nameFile = new File(dotDir, "." + new FileIdGetter(_f).get() + ".filename");
+        try (FileWriter nameWriter = new FileWriter(m_nameFile)) {
             nameWriter.write(_f.getCanonicalPath());
         }
+    }
+
+    public boolean delete() {
+        return m_offsetFile.delete() && m_nameFile.delete();
     }
 
     @Override
@@ -38,13 +41,13 @@ public class OffsetFile extends OffsetManager {
         }
 
         try (FileInputStream fis = new FileInputStream(m_offsetFile)) {
-            byte[] valBuf = new byte[8];
-            int bytesRead = fis.read(valBuf);
+            final byte[] valBuf = new byte[8];
+            final int bytesRead = fis.read(valBuf);
             if (8 != bytesRead) {
                 throw new IOException("OFfset file corrupt");
             }
-            long ofs = ByteBuffer.wrap(valBuf).getLong();
-            if(ofs > m_file.length()) {
+            final long ofs = ByteBuffer.wrap(valBuf).getLong();
+            if (ofs > m_file.length()) {
                 Debug.debug("Warning: file has changed (now smaller)");
                 return 0;
             }
@@ -53,15 +56,11 @@ public class OffsetFile extends OffsetManager {
     }
 
     @Override
-    public synchronized void set(long _l) throws IOException {
-        byte[] buf = new byte[8];
+    public synchronized void set(final long _l) throws IOException {
+        final byte[] buf = new byte[8];
         ByteBuffer.wrap(buf).putLong(_l);
         try (FileOutputStream fos = new FileOutputStream(m_offsetFile)) {
             fos.write(buf);
         }
-    }
-
-    public boolean delete() {
-        return m_offsetFile.delete() && m_nameFile.delete();
     }
 }

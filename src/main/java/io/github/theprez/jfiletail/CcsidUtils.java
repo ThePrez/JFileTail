@@ -41,8 +41,7 @@ public class CcsidUtils {
             final Map<?, ?> cpMap = ConversionMaps.encodingCcsid_;
             for (final Entry<?, ?> entry : cpMap.entrySet()) {
                 try {
-                    g_toolboxEncodingMap.put(entry.getKey().toString().toLowerCase(),
-                            Integer.valueOf(entry.getValue().toString()));
+                    g_toolboxEncodingMap.put(entry.getKey().toString().toLowerCase(), Integer.valueOf(entry.getValue().toString()));
                 } catch (final NumberFormatException _e) {
                     // if it happens we don't care so not even bothering to log, move along, nothing
                     // to see here
@@ -154,17 +153,16 @@ public class CcsidUtils {
      * Pass false for the fallback arg (2nd) if you want validation
      *
      * @param _ccsid
-     *                                 the CCSID
+     *            the CCSID
      * @param _fallbackToGenericCpXXXX
-     *                                 true if one wants a valid String regardless
+     *            true if one wants a valid String regardless
      * @return String holding equivalent java encoding
      * @throws UnsupportedCharsetException
-     *                                     if no match and !_fallbackToGenericCpXXXX
+     *             if no match and !_fallbackToGenericCpXXXX
      * @throws IOException
-     *                                     when InputStream close() fails
+     *             when InputStream close() fails
      */
-    public static String ccsidToEncoding(final int _ccsid, final boolean _fallbackToGenericCpXXXX)
-            throws UnsupportedCharsetException, IOException {
+    public static String ccsidToEncoding(final int _ccsid, final boolean _fallbackToGenericCpXXXX) throws UnsupportedCharsetException, IOException {
         try {
             // this weird two-step guarantees that the JVM understands the returned value
             return charsetToEncoding(ccsidToCharset(Integer.valueOf(_ccsid)));
@@ -185,10 +183,10 @@ public class CcsidUtils {
      * Gets a matching ccsid for the given charset
      *
      * @param _c
-     *           charset for which to locate the matching ccsid
+     *            charset for which to locate the matching ccsid
      * @return a ccsid, or -1 on failure
      * @throws IOException
-     *                     on charset close()
+     *             on charset close()
      */
     public static int charsetToCCSID(final Charset _c) throws IOException {
         if (null == _c) {
@@ -215,12 +213,12 @@ public class CcsidUtils {
      * Returns an encoding string for the given charset.
      *
      * @param _c
-     *           charset for which to locate the matching encoding
+     *            charset for which to locate the matching encoding
      * @return matching encoding String
      * @throws IOException
-     *                              when close() has trouble
+     *             when close() has trouble
      * @throws NullPointerException
-     *                              if parm is null
+     *             if parm is null
      */
     public static String charsetToEncoding(final Charset _c) throws IOException {
         try (InputStream is = new ByteArrayInputStream(new byte[0])) {
@@ -231,7 +229,7 @@ public class CcsidUtils {
     /**
      *
      * @param _encoding
-     *                  An encoding name. Or, sometimes, charset names work, too!
+     *            An encoding name. Or, sometimes, charset names work, too!
      * @return -1 on failure
      */
     public static int encodingToCCSID(final String _encoding) {
@@ -260,6 +258,38 @@ public class CcsidUtils {
         return Charset.forName(_encoding);
     }
 
+    public static Entry<Integer, String> getTaggedCcsidAndEncoding(final File _file) {
+        if (isIBMi()) {
+            try {
+                final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/usr/bin/attr", _file.getAbsolutePath(), "ccsid" });
+                String output = "";
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"))) {
+                    String line;
+                    while (null != (line = br.readLine())) {
+                        output += line + "\n";
+                    }
+                }
+                output = output.trim();
+                final int ccsid = Integer.valueOf(output);
+                final String encoding = CcsidUtils.ccsidToEncoding(ccsid, true);
+                final HashMap<Integer, String> ccsidAndEncodingMap = new HashMap<Integer, String>();
+                ccsidAndEncodingMap.put(ccsid, encoding);
+                for (final Entry<Integer, String> ret : ccsidAndEncodingMap.entrySet()) {
+                    return ret;
+                }
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
+        }
+        final HashMap<Integer, String> unknown = new HashMap<>();
+        unknown.put(1208, "UTF-8");
+        return unknown.entrySet().iterator().next();
+    }
+
+    private static boolean isIBMi() {
+        return System.getProperty("os.name", "Misty").matches("(?i)OS/?400");
+    }
+
     public static int toCCSID(final String _charset) {
         try {
             return encodingToCCSID(unknownStringToEncoding(_charset, "unknown"));
@@ -284,8 +314,7 @@ public class CcsidUtils {
         }
     }
 
-    public static String unknownStringToEncoding(final String _enc, final String _fallback)
-            throws UnsupportedCharsetException, IOException {
+    public static String unknownStringToEncoding(final String _enc, final String _fallback) throws UnsupportedCharsetException, IOException {
         if (0 == _enc.trim().length()) {
             if (null == _fallback) {
                 throw new RuntimeException(new UnsupportedEncodingException());
@@ -306,38 +335,5 @@ public class CcsidUtils {
             // it?
             return _fallback;
         }
-    }
-
-    public static Entry<Integer, String> getTaggedCcsidAndEncoding(final File _file) {
-        if (isIBMi()) {
-            try {
-                final Process p = Runtime.getRuntime()
-                        .exec(new String[] { "/QOpenSys/usr/bin/attr", _file.getAbsolutePath(), "ccsid" });
-                String output = "";
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"))) {
-                    String line;
-                    while (null != (line = br.readLine())) {
-                        output += line + "\n";
-                    }
-                }
-                output = output.trim();
-                final int ccsid = Integer.valueOf(output);
-                final String encoding = CcsidUtils.ccsidToEncoding(ccsid, true);
-                final HashMap<Integer, String> ccsidAndEncodingMap = new HashMap<Integer, String>();
-                ccsidAndEncodingMap.put(ccsid, encoding);
-                for (final Entry<Integer, String> ret : ccsidAndEncodingMap.entrySet()) {
-                    return ret;
-                }
-            } catch (final Exception e) {
-                e.printStackTrace();
-            }
-        }
-        HashMap<Integer, String> unknown = new HashMap<>();
-        unknown.put(1208, "UTF-8");
-        return unknown.entrySet().iterator().next();
-    }
-
-    private static boolean isIBMi() {
-        return System.getProperty("os.name", "Misty").matches("(?i)OS/?400");
     }
 }

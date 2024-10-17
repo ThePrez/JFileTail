@@ -57,6 +57,7 @@ public class FileNewContentsReader extends Reader {
             return;
         }
         m_ofs.set(m_newPos);
+        m_in.close();
         Debug.debug("-->closed");
     }
 
